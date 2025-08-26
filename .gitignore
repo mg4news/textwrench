@@ -1,0 +1,6 @@
+.DS_Store
+poetry.lock
+.vscode/settings.json
+__pycache__/
+*.py[cod]
+*$py.class
