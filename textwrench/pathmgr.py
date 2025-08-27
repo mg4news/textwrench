@@ -102,3 +102,18 @@ class PathMgr:
         with open(filepath, "w") as f:
             f.writelines(lines)
             self.logger.info(f"Wrote text file: {filepath}")
+
+    def get_resolved_path(self, filename: str | None = None) -> Path:
+        """
+        Returns the resolved path for a given filename.
+
+        Args:
+            filename (str): The name of the file.
+
+        Returns:
+            Path: The resolved path for the file.
+        """
+        if filename is None:
+            return self.directory
+        else:
+            return self.directory / filename

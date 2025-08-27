@@ -49,10 +49,21 @@ My normal workflow is:
 ## Notes
 
 ### Embedding Images 
+
+#### Image Centering
 If you use the normal markdown syntax for embedding images (e.g. ```![Logo](../../images/SomeCompanyLogo.png)```) you can use relative paths (e.g. ../../image). However, this syntax does not give control over alignment.
 If you use HTML:
 
 ```<img align="right" src="../../images/SomeCompanyLogo.png">```
 
 Then you can align the image, and the MD presents correctly on github. However, it does not present correctly in a local environment. You can use relative paths with HTML, but you cannot navigate back up the tree. 
+
+#### Image Paths
+Weasyprint seems to have issues with relative paths for images. So, best practice is to either
+- use an absolute path in the image link, OR
+- use a path relative to the directory the markdown file is in
+
+TextWrench will parse the image links. If the absolute path is provided it will be used as is. if the relative path is provided, TextWrench will compose an absolute path by concatenating the path to the markdown file with the relative path. If the file is not found after trying both approaches, then TextWrench will throw an error.
+
+
 

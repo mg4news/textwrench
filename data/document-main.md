@@ -39,7 +39,7 @@ TO ADD CHAPTERS
 -->
 
 
-![Logo](./tux.png)
+![Logo](images/tux.png)
 
 <br/>
 <br/>
@@ -47,6 +47,9 @@ TO ADD CHAPTERS
 <p style="text-align: center; font-size: 32px; font-weight: bold;">
   Document title
 </p>
+
+<br/>
+<br/>
 
 <p style="text-align: center; font-size: 18px; font-weight: bold;">
   Version 0.0.1 (draft)

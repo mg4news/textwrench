@@ -1,5 +1,5 @@
 """
-Filename: textwrench.py
+Filename: __main__.py
 
 Author: mg4news
 
@@ -12,12 +12,16 @@ Description:
 """
 
 import argparse
+import logging
 import sys
 from pathlib import Path
 from textwrench.pathmgr import PathMgr
 from textwrench.mdbuilder import assemble
 from textwrench.pdfbuilder import PdfBuilder
 from textwrench.tocbuilder import build_toc
+from textwrench.imgfix import resolve_image_links
+
+logger = logging.getLogger(__name__)
 
 
 DESCRIPTION = """TextWrench is a set of tools for markdown files. It can:
@@ -40,22 +44,22 @@ _HTML_TEMPLATE = "templates/default.html5"
 def sanity_check():
     fm = PathMgr(Path.cwd())
     if fm.file_exists(_CSS_PROFFESSIONAL):
-        print(f"Sanity check: found {_CSS_PROFFESSIONAL}")
+        logger.info(f"Sanity check: found {_CSS_PROFFESSIONAL}")
     else:
-        print(f"Sanity check: {_CSS_PROFFESSIONAL} not found")
+        logger.warning(f"Sanity check: {_CSS_PROFFESSIONAL} not found")
     if fm.file_exists(_CSS_STANDARD):
-        print(f"Sanity check: found {_CSS_STANDARD}")
+        logger.info(f"Sanity check: found {_CSS_STANDARD}")
     else:
-        print(f"Sanity check: {_CSS_STANDARD} not found")
+        logger.warning(f"Sanity check: {_CSS_STANDARD} not found")
     if fm.file_exists(_HTML_TEMPLATE):
-        print(f"Sanity check: found {_HTML_TEMPLATE}")
+        logger.info(f"Sanity check: found {_HTML_TEMPLATE}")
     else:
-        print(f"Sanity check: {_HTML_TEMPLATE} not found")
+        logger.warning(f"Sanity check: {_HTML_TEMPLATE} not found")
 
 
 def wrench(args):
-    sanity_check()
-    print(f"Wrenching with {args} !!")
+    # sanity_check()
+    logger.info(f"Processing {args.inp} with arguments: {args}")
     filepath = Path(args.inp)
     filestem = str(filepath.stem)
     fmgr = PathMgr(filepath.parent)
@@ -74,11 +78,12 @@ def wrench(args):
     # - convert to PDF
     lines = fmgr.read_lines(filepath.name)
     if asm:
-        print("Assembling...")
+        logger.info("Assembling document...")
         lines = assemble(lines, fmgr)
     if toc:
-        print("Building TOC...")
+        logger.info("Building table of contents...")
         lines = build_toc(lines)
+    lines = resolve_image_links(lines, str(fmgr.get_resolved_path()))
 
     fmgr.write_lines(f"{filestem}_work.md", lines)
     pdf = PdfBuilder(fmgr)
@@ -136,8 +141,7 @@ def main():
         # argparse prints help automatically on error, we just exit
         sys.exit(1)
 
-    # Do something
-    print(Path.cwd())
+    logger.info("Processing complete.")
 
 
 if __name__ == "__main__":
