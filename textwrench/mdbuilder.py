@@ -15,6 +15,7 @@ Description:
 import re
 from typing import List
 from textwrench.pathmgr import PathMgr
+from textwrench.mdstate import MdState
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ _DOC_LINK_RE = re.compile(r"^\s*(!)?\[\[([^\]|]+)(?:\|([^\]]+))?\]\]\s*$")
 _MAX_PASSES = 3
 
 
-def strip_yaml_comment_blocks(lines: List[str]) -> List[str]:
+def strip_html_comment_blocks(lines: List[str]) -> List[str]:
     """
     Removes YAML-style blocks wrapped in <!-- ... --> from a list of markdown lines.
 
@@ -41,19 +42,11 @@ def strip_yaml_comment_blocks(lines: List[str]) -> List[str]:
         List[str]: Lines with YAML blocks removed.
     """
     stripped = []
-    inside_block = False
+    docstate = MdState()
 
     for line in lines:
-        # Check for block start
-        if not inside_block and line.strip().startswith("<!--"):
-            inside_block = True
-            continue
-        # Check for block end
-        if inside_block and line.strip().endswith("-->"):
-            inside_block = False
-            continue
-        # Only keep lines outside blocks
-        if not inside_block:
+        docstate.process_line(line)
+        if not docstate.in_comment_block:
             stripped.append(line)
 
     return stripped
@@ -81,7 +74,7 @@ def _one_pass(lines: List[str], fmgr: PathMgr) -> List[str]:
         if doc and fmgr.file_exists(f"{doc}.md"):
             logger.info(f"Inserted document: {doc}")
             n = fmgr.read_lines(f"{doc}.md")
-            new_lines.extend(strip_yaml_comment_blocks(n))
+            new_lines.extend(strip_html_comment_blocks(n))
         else:
             new_lines.append(line)
     logger.info("Document assembly pass done...")
@@ -111,7 +104,7 @@ def assemble(lines: List[str], fmgr: PathMgr, passes: int = 1) -> List[str]:
         logger.error(msg)
         raise ValueError(msg)
 
-    asm_lines = lines
+    asm_lines = strip_html_comment_blocks(lines)
     for p in range(passes):
         logger.info(f"Document assembly pass: {p + 1} / {passes}")
         asm_lines = _one_pass(asm_lines, fmgr)

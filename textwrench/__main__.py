@@ -21,8 +21,7 @@ from textwrench.pdfbuilder import PdfBuilder
 from textwrench.tocbuilder import build_toc
 from textwrench.imgfix import resolve_image_links
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("textwrench.__main__")
 
 DESCRIPTION = """TextWrench is a set of tools for markdown files. It can:
   - assemble a single markdown file from linked documents

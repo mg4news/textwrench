@@ -16,12 +16,11 @@ Description:
 
 from typing import List, Optional
 from textwrench.models import TocMarker
+from textwrench.mdstate import MdState
 import re
 import logging
 
 logger = logging.getLogger(__name__)
-_TOC_START = "```toc"
-_TOC_END = "```"
 _TOC_DEPTH_RE = re.compile(r"^(min_depth|max_depth):\s*(\d+)$")
 
 
@@ -46,16 +45,16 @@ def find_toc_marker(lines: List[str]) -> Optional[TocMarker]:
     """
     logger.info("Searching for TOC marker...")
     toc: Optional[TocMarker] = None
+    docstate = MdState()
 
     for i, line in enumerate(lines):
         line = line.strip()
-        if not toc and line == _TOC_START:
+        docstate.process_line(line)
+        if not toc and docstate.in_code_block and docstate.code_block_type == "toc":
             toc = {"start_line": i, "end_line": i, "min_depth": 1, "max_depth": 3}
-            logger.info(f"Found TOC start marker at line {i + 1}.")
         elif toc:
-            if line == _TOC_END:
+            if not docstate.in_code_block:
                 toc["end_line"] = i
-                logger.info(f"Found TOC end marker at line {i + 1}.")
                 if toc["end_line"] - toc["start_line"] > 5:
                     msg = f"TOC marker block is too long (lines {toc['start_line'] + 1}–{toc['end_line'] + 1})."
                     logger.error(msg)
@@ -99,7 +98,6 @@ def build_heading_map(lines: List[str], toc: TocMarker) -> dict[int, tuple[int, 
 
 
 def new_toc_from_map(heading_map: dict[int, tuple[int, str]]) -> List[str]:
-    logger.info(f"Generating new TOC from a map of {len(heading_map)} headings.")
     """
     Builds a new hyperlinked TOC from the heading map
 
@@ -110,7 +108,7 @@ def new_toc_from_map(heading_map: dict[int, tuple[int, str]]) -> List[str]:
         a line list of the new TOC
 
     """
-    logger.info(f"Generating new TOC from a map of {len(heading_map)} headings.")
+    logger.info(f"Generating navigable TOC from a map of {len(heading_map)} headings.")
     new_toc_lines = ["## Table of Contents\n", "\n"]
     slug_counts = {}
 
@@ -134,7 +132,7 @@ def new_toc_from_map(heading_map: dict[int, tuple[int, str]]) -> List[str]:
         line = prefix + f"[{heading_text}](#{slug})\n"
         new_toc_lines.append(line)
 
-    logger.info(f"Generated {len(new_toc_lines)} lines for the new TOC.")
+    logger.info(f"Generated {len(new_toc_lines)} TOC entries")
     return new_toc_lines
 
 
